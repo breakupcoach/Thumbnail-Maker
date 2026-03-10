@@ -434,7 +434,28 @@ function getLibrary() {
   catch(e) { return []; }
 }
 function saveLibrary(lib) {
-  localStorage.setItem(LIB_KEY, JSON.stringify(lib));
+  try {
+    localStorage.setItem(LIB_KEY, JSON.stringify(lib));
+  } catch(e) {
+    alert('Storage full! Try deleting some saved backgrounds to free up space.');
+  }
+}
+
+/* Compress image to JPEG at reduced size before saving */
+function compressImage(dataUrl, maxW, maxH, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxW / img.width, maxH / img.height);
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
 }
 
 function renderLibrary() {
@@ -458,25 +479,28 @@ function renderLibrary() {
   });
 }
 
-function saveBackground() {
+async function saveBackground() {
   if (!bgDataUrl) {
     alert('Upload a background first, then tap Save!');
     return;
   }
+  const btn = document.querySelector('.btn-save-bg');
+  btn.textContent = '⏳ Saving...';
+  btn.disabled = true;
+
+  // Compress to max 682×1024 at 70% JPEG quality (~100-200KB)
+  const compressed = await compressImage(bgDataUrl, 682, 1024, 0.70);
+
   const lib = getLibrary();
   const nameEl = document.getElementById('bgLabel');
   const rawName = nameEl.textContent.replace('✅ ','').trim() || ('Background ' + (lib.length + 1));
-  // Check for duplicates by data
-  if (lib.some(item => item.data === bgDataUrl)) {
-    alert('This background is already saved!');
-    return;
-  }
-  lib.push({ name: rawName, data: bgDataUrl });
+
+  lib.push({ name: rawName, data: compressed });
   saveLibrary(lib);
   renderLibrary();
-  // flash confirmation
-  const btn = document.querySelector('.btn-save-bg');
+
   btn.textContent = '✅ Saved!';
+  btn.disabled = false;
   setTimeout(() => btn.textContent = '⭐ Save', 1500);
 }
 
