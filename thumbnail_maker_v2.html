@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Thumbnail Maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Raleway:ital,wght@0,700;0,900;1,700&family=Oswald:wght@400;600;700&family=Bebas+Neue&family=Merriweather:ital,wght@0,700;0,900;1,700&family=Montserrat:ital,wght@0,700;0,900;1,700&family=Lato:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #e94560;
+    --panel: #16213e;
+    --bg: #0d0d1a;
+    --border: #2a3a5c;
+    --text: #ffffff;
+    --muted: #8899aa;
+  }
+
+  body {
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: #fff;
+    text-transform: uppercase;
+  }
+  header p { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+  /* ── MAIN LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 20px;
+    max-width: 1080px;
+    margin: 0 auto;
+    align-items: start;
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin: 18px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  label.field-label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+    margin-top: 12px;
+  }
+  label.field-label:first-of-type { margin-top: 0; }
+
+  textarea, select, input[type="color"] {
+    width: 100%;
+    background: #0a1628;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: #fff;
+    font-size: 14px;
+    padding: 9px 11px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus, select:focus { border-color: var(--accent); }
+  textarea { resize: none; height: 62px; line-height: 1.4; }
+  select { cursor: pointer; appearance: auto; }
+  select option { background: #0a1628; }
+
+  /* font controls row */
+  .font-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .font-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 48px;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: end;
+  }
+  .font-row label, .font-row-3 label {
+    font-size: 10px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+  input[type="color"] {
+    padding: 2px 4px;
+    height: 38px;
+    cursor: pointer;
+    border-radius: 7px;
+  }
+
+  /* color swatches */
+  .swatch-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+  .swatch:hover { transform: scale(1.18); border-color: #fff; }
+  .swatch.active { border-color: #e94560; transform: scale(1.12); }
+  .swatch-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+  }
+
+  /* sliders */
+  .slider-row { margin-top: 10px; }
+  .slider-row .slider-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+    height: 4px;
+    cursor: pointer;
+  }
+
+  /* upload boxes */
+  .upload-box {
+    position: relative;
+    width: 100%;
+    height: 80px;
+    border: 2px dashed var(--border);
+    border-radius: 9px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 12px;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+    text-align: center;
+    gap: 4px;
+  }
+  .upload-box:hover { border-color: var(--accent); background: #0f1e38; }
+  .upload-box.has-image { border-color: #2ecc71; border-style: solid; }
+  .upload-box input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .upload-box .up-icon { font-size: 22px; }
+  .upload-box .up-name { font-size: 11px; color: #2ecc71; }
+
+  /* download button */
+  .btn-download {
+    width: 100%;
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #e94560, #b71c3a);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn-download:hover { opacity: 0.9; transform: scale(1.01); }
+  .btn-download:active { transform: scale(0.98); }
+  .btn-hint { text-align: center; color: var(--muted); font-size: 11px; margin-top: 6px; }
+
+  /* ── PREVIEW ── */
+  .preview-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: sticky;
+    top: 16px;
+  }
+  .preview-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .canvas-scaler {
+    width: 100%;
+    max-width: 500px;
+  }
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 740px) {
+    body { padding: 12px; }
+    .layout {
+      grid-template-columns: 1fr;
+    }
+    .preview-wrap {
+      position: static;
+      order: -1; /* preview on TOP on mobile */
+    }
+    .canvas-scaler { max-width: 100%; }
+    .font-row { grid-template-columns: 1fr 1fr; }
+    .font-row-3 { grid-template-columns: 1fr 1fr 44px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎨 Thumbnail Maker</h1>
+  <p>Upload background · Type your text · Download PNG</p>
+</header>
+
+<div class="layout">
+
+  <!-- ══ CONTROLS ══ -->
+  <div class="controls">
+
+    <!-- BACKGROUND -->
+    <div class="section-title">Background Image</div>
+    <div class="upload-box" id="bgBox">
+      <div class="up-icon">🖼️</div>
+      <span id="bgLabel">Tap to upload background</span>
+      <input type="file" id="bgUpload" accept="image/*">
+    </div>
+
+    <!-- LINE 1 -->
+    <div class="section-title">Line 1 — Top Text</div>
+    <label class="field-label">Text</label>
+    <textarea id="line1" placeholder="Type your main title here..."></textarea>
+
+    <div class="swatch-label">Quick Colors</div>
+    <div class="swatch-row" id="l1swatches">
+      <div class="swatch active" style="background:#ffffff" data-color="#ffffff" data-target="l1color" title="Pure White"></div>
+      <div class="swatch" style="background:#F5F0E8" data-color="#F5F0E8" data-target="l1color" title="Warm White"></div>
+      <div class="swatch" style="background:#EEC77C" data-color="#EEC77C" data-target="l1color" title="Exact Gold (from your image)"></div>
+      <div class="swatch" style="background:#D4A017" data-color="#D4A017" data-target="l1color" title="Deep Gold"></div>
+      <div class="swatch" style="background:#DFB85D" data-color="#DFB85D" data-target="l1color" title="Warm Gold"></div>
+      <div class="swatch" style="background:#FFD700" data-color="#FFD700" data-target="l1color" title="Bright Gold"></div>
+      <div class="swatch" style="background:#E8C5F5" data-color="#E8C5F5" data-target="l1color" title="Lavender"></div>
+      <div class="swatch" style="background:#ff4444" data-color="#ff4444" data-target="l1color" title="Red"></div>
+      <div class="swatch" style="background:#000000; border:2px solid #444" data-color="#000000" data-target="l1color" title="Black"></div>
+    </div>
+
+    <div class="font-row-3">
+      <div>
+        <label>Font</label>
+        <select id="l1font">
+          <optgroup label="── Cinzel Family">
+            <option value="Cinzel, serif" selected>Cinzel</option>
+            <option value="'Cinzel Decorative', serif">Cinzel Decorative</option>
+          </optgroup>
+          <optgroup label="── Elegant Serif">
+            <option value="Georgia, serif">Georgia</option>
+            <option value="'Playfair Display', serif">Playfair Display</option>
+            <option value="Merriweather, serif">Merriweather</option>
+            <option value="'Times New Roman', serif">Times New Roman</option>
+          </optgroup>
+          <optgroup label="── Bold / Impact">
+            <option value="Impact, sans-serif">Impact</option>
+            <option value="'Bebas Neue', sans-serif">Bebas Neue</option>
+            <option value="Oswald, sans-serif">Oswald</option>
+          </optgroup>
+          <optgroup label="── Modern Sans">
+            <option value="Montserrat, sans-serif">Montserrat</option>
+            <option value="Raleway, sans-serif">Raleway</option>
+            <option value="Lato, sans-serif">Lato</option>
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="Verdana, sans-serif">Verdana</option>
+          </optgroup>
+        </select>
+      </div>
+      <div>
+        <label>Style</label>
+        <select id="l1style">
+          <option value="bold" selected>Bold</option>
+          <option value="normal">Normal</option>
+          <option value="italic">Italic</option>
+          <option value="bold italic">Bold Italic</option>
+        </select>
+      </div>
+      <div>
+        <label>Color</label>
+        <input type="color" id="l1color" value="#ffffff">
+      </div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-header"><span>Font Size</span><span id="l1sizeVal">60</span>px</div>
+      <input type="range" id="l1size" min="24" max="110" value="60">
+    </div>
+
+    <!-- LINE 2 -->
+    <div class="section-title">Line 2 — Sub Text</div>
+    <label class="field-label">Text</label>
+    <textarea id="line2" placeholder="Type your subtitle here..."></textarea>
+
+    <div class="swatch-label">Quick Colors</div>
+    <div class="swatch-row" id="l2swatches">
+      <div class="swatch" style="background:#ffffff" data-color="#ffffff" data-target="l2color" title="Pure White"></div>
+      <div class="swatch" style="background:#F5F0E8" data-color="#F5F0E8" data-target="l2color" title="Warm White"></div>
+      <div class="swatch active" style="background:#EEC77C" data-color="#EEC77C" data-target="l2color" title="Exact Gold (from your image)"></div>
+      <div class="swatch" style="background:#D4A017" data-color="#D4A017" data-target="l2color" title="Deep Gold"></div>
+      <div class="swatch" style="background:#DFB85D" data-color="#DFB85D" data-target="l2color" title="Warm Gold"></div>
+      <div class="swatch" style="background:#FFD700" data-color="#FFD700" data-target="l2color" title="Bright Gold"></div>
+      <div class="swatch" style="background:#E8C5F5" data-color="#E8C5F5" data-target="l2color" title="Lavender"></div>
+      <div class="swatch" style="background:#ff4444" data-color="#ff4444" data-target="l2color" title="Red"></div>
+      <div class="swatch" style="background:#000000; border:2px solid #444" data-color="#000000" data-target="l2color" title="Black"></div>
+    </div>
+
+    <div class="font-row-3">
+      <div>
+        <label>Font</label>
+        <select id="l2font">
+          <optgroup label="── Cinzel Family">
+            <option value="Cinzel, serif">Cinzel</option>
+            <option value="'Cinzel Decorative', serif">Cinzel Decorative</option>
+          </optgroup>
+          <optgroup label="── Elegant Serif">
+            <option value="Georgia, serif" selected>Georgia</option>
+            <option value="'Playfair Display', serif">Playfair Display</option>
+            <option value="Merriweather, serif">Merriweather</option>
+            <option value="'Times New Roman', serif">Times New Roman</option>
+          </optgroup>
+          <optgroup label="── Bold / Impact">
+            <option value="Impact, sans-serif">Impact</option>
+            <option value="'Bebas Neue', sans-serif">Bebas Neue</option>
+            <option value="Oswald, sans-serif">Oswald</option>
+          </optgroup>
+          <optgroup label="── Modern Sans">
+            <option value="Montserrat, sans-serif">Montserrat</option>
+            <option value="Raleway, sans-serif">Raleway</option>
+            <option value="Lato, sans-serif">Lato</option>
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="Verdana, sans-serif">Verdana</option>
+          </optgroup>
+        </select>
+      </div>
+      <div>
+        <label>Style</label>
+        <select id="l2style">
+          <option value="bold">Bold</option>
+          <option value="italic" selected>Italic</option>
+          <option value="bold italic">Bold Italic</option>
+          <option value="normal">Normal</option>
+        </select>
+      </div>
+      <div>
+        <label>Color</label>
+        <input type="color" id="l2color" value="#EEC77C">
+      </div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-header"><span>Font Size</span><span id="l2sizeVal">52</span>px</div>
+      <input type="range" id="l2size" min="20" max="90" value="52">
+    </div>
+
+    <!-- CENTER IMAGE -->
+    <div class="section-title">Center Image</div>
+    <div class="upload-box" id="imgBox">
+      <div class="up-icon">📁</div>
+      <span id="imgLabel">Tap to upload center image</span>
+      <input type="file" id="centerUpload" accept="image/*">
+    </div>
+
+    <div class="slider-row" style="margin-top:12px">
+      <div class="slider-header"><span>Size</span><span id="imgSizeVal">65</span>%</div>
+      <input type="range" id="imgSize" min="10" max="95" value="65">
+    </div>
+    <div class="slider-row">
+      <div class="slider-header"><span>Vertical Position</span><span id="imgPosVal">55</span>%</div>
+      <input type="range" id="imgPos" min="20" max="90" value="55">
+    </div>
+
+    <div class="slider-row">
+      <div class="slider-header"><span>Text Block Position (top)</span><span id="textPosVal">18</span>%</div>
+      <input type="range" id="textPos" min="3" max="45" value="18">
+    </div>
+
+    <button class="btn-download" onclick="downloadImage()">⬇ Download PNG</button>
+    <p class="btn-hint">682 × 1024 px · Saves to your device</p>
+
+  </div>
+
+  <!-- ══ PREVIEW ══ -->
+  <div class="preview-wrap">
+    <div class="preview-label">Live Preview</div>
+    <div class="canvas-scaler">
+      <canvas id="canvas" width="682" height="1024"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = 682, H = 1024;
+
+let bgImage = null;
+let centerImage = null;
+
+// Preload all Google Fonts into canvas by drawing invisible text
+const GFONTS = [
+  'Cinzel, serif', "'Cinzel Decorative', serif",
+  "'Playfair Display', serif", 'Merriweather, serif',
+  "'Bebas Neue', sans-serif", 'Oswald, sans-serif',
+  'Montserrat, sans-serif', 'Raleway, sans-serif', 'Lato, sans-serif'
+];
+function warmFonts() {
+  GFONTS.forEach(f => {
+    ctx.font = `bold 1px ${f}`;
+    ctx.fillText('', 0, 0);
+  });
+  // Re-render after a short delay once fonts are loaded
+  document.fonts.ready.then(() => render());
+}
+warmFonts();
+
+/* ── COLOR SWATCHES ── */
+document.querySelectorAll('.swatch').forEach(sw => {
+  sw.addEventListener('click', () => {
+    const targetId = sw.dataset.target;
+    const color    = sw.dataset.color;
+    // update color picker
+    document.getElementById(targetId).value = color;
+    // update active state within same swatch row
+    sw.closest('.swatch-row').querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+    sw.classList.add('active');
+    render();
+  });
+});
+
+// Sync color picker → clear active swatch (custom color chosen)
+['l1color','l2color'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    const row = id === 'l1color' ? 'l1swatches' : 'l2swatches';
+    document.getElementById(row).querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+    render();
+  });
+});
+
+/* ── UPLOAD HANDLERS ── */
+function handleUpload(inputId, boxId, labelId, onLoad) {
+  document.getElementById(inputId).addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => { onLoad(img); render(); };
+      img.src = ev.target.result;
+      const box = document.getElementById(boxId);
+      box.classList.add('has-image');
+      const label = document.getElementById(labelId);
+      label.textContent = '✅ ' + file.name.substring(0, 28);
+      label.className = 'up-name';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+handleUpload('bgUpload', 'bgBox', 'bgLabel', img => { bgImage = img; });
+handleUpload('centerUpload', 'imgBox', 'imgLabel', img => { centerImage = img; });
+
+/* ── LIVE CONTROLS ── */
+const controls = ['line1','line2','l1font','l1style','l1color','l1size',
+                   'l2font','l2style','l2color','l2size','imgSize','imgPos','textPos'];
+controls.forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', () => {
+    if (id === 'l1size') document.getElementById('l1sizeVal').textContent = el.value;
+    if (id === 'l2size') document.getElementById('l2sizeVal').textContent = el.value;
+    if (id === 'imgSize') document.getElementById('imgSizeVal').textContent = el.value;
+    if (id === 'imgPos')  document.getElementById('imgPosVal').textContent  = el.value;
+    if (id === 'textPos') document.getElementById('textPosVal').textContent = el.value;
+    render();
+  });
+  el.addEventListener('change', render);
+});
+
+/* ── TEXT WRAP ── */
+function wrapText(text, font, maxWidth) {
+  ctx.font = font;
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    const test = cur ? cur + ' ' + w : w;
+    if (ctx.measureText(test).width > maxWidth && cur) {
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = test;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+/* ── MAIN RENDER ── */
+function render() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  if (bgImage) {
+    // Cover fit
+    const bAspect = bgImage.width / bgImage.height;
+    const cAspect = W / H;
+    let sx, sy, sw, sh;
+    if (bAspect > cAspect) {
+      sh = bgImage.height; sw = sh * cAspect;
+      sx = (bgImage.width - sw) / 2; sy = 0;
+    } else {
+      sw = bgImage.width; sh = sw / cAspect;
+      sx = 0; sy = (bgImage.height - sh) / 2;
+    }
+    ctx.drawImage(bgImage, sx, sy, sw, sh, 0, 0, W, H);
+  } else {
+    // Placeholder gradient
+    const grad = ctx.createRadialGradient(W/2, H*0.4, 0, W/2, H*0.4, H*0.8);
+    grad.addColorStop(0, '#3d1260');
+    grad.addColorStop(0.5, '#1a0835');
+    grad.addColorStop(1, '#07020f');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    ctx.font = '15px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Upload a background image', W/2, H/2 + 30);
+  }
+
+  const l1text  = document.getElementById('line1').value || '';
+  const l2text  = document.getElementById('line2').value || '';
+  const l1font  = document.getElementById('l1font').value;
+  const l1style = document.getElementById('l1style').value;
+  const l1color = document.getElementById('l1color').value;
+  const l1size  = parseInt(document.getElementById('l1size').value);
+  const l2font  = document.getElementById('l2font').value;
+  const l2style = document.getElementById('l2style').value;
+  const l2color = document.getElementById('l2color').value;
+  const l2size  = parseInt(document.getElementById('l2size').value);
+  const imgSizePct = parseInt(document.getElementById('imgSize').value) / 100;
+  const imgPosPct  = parseInt(document.getElementById('imgPos').value)  / 100;
+
+  const maxW = W - 70;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+
+  // ── LINE 1 ──
+  const font1 = `${l1style} ${l1size}px ${l1font}`;
+  const lines1 = wrapText(l1text.toUpperCase(), font1, maxW);
+  const lineH1 = l1size * 1.18;
+  ctx.font = font1;
+  ctx.fillStyle = l1color;
+  ctx.shadowColor = 'rgba(0,0,0,0.85)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+
+  const textPosPct = parseInt(document.getElementById('textPos').value) / 100;
+  let y = H * textPosPct;
+  for (const ln of lines1) { ctx.fillText(ln, W/2, y); y += lineH1; }
+
+  // ── LINE 2 ──
+  const font2 = `${l2style} ${l2size}px ${l2font}`;
+  const lines2 = wrapText(l2text.toUpperCase(), font2, maxW);
+  const lineH2 = l2size * 1.18;
+  ctx.font = font2;
+  ctx.fillStyle = l2color;
+  ctx.shadowBlur = 8;
+
+  y += 6;
+  for (const ln of lines2) { ctx.fillText(ln, W/2, y); y += lineH2; }
+
+  // reset shadow
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+
+  // ── CENTER IMAGE ──
+  if (centerImage) {
+    const maxDim = W * imgSizePct;
+    const aspect = centerImage.width / centerImage.height;
+    let iw, ih;
+    if (aspect >= 1) { iw = maxDim; ih = maxDim / aspect; }
+    else             { ih = maxDim; iw = maxDim * aspect; }
+    const ix = (W - iw) / 2;
+    const iy = H * imgPosPct - ih / 2;
+    ctx.drawImage(centerImage, ix, iy, iw, ih);
+  }
+}
+
+function downloadImage() {
+  render();
+  const link = document.createElement('a');
+  link.download = 'thumbnail.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+render();
+</script>
+</body>
+</html>
